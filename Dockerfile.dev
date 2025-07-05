@@ -1,0 +1,28 @@
+FROM ruby:3.2.3
+
+ENV LANG C.UTF-8
+ENV TZ Asia/Tokyo
+
+# Node.js（公式方法）を含めて依存をインストール
+RUN apt-get update -qq && apt-get install -y curl gnupg && \
+    curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y \
+    build-essential \
+    libpq-dev \
+    nodejs \
+    postgresql-client \
+    libxml2-dev \
+    libxslt1-dev
+
+# yarn をインストール
+RUN npm install -g yarn
+
+WORKDIR /app
+
+COPY Gemfile* ./
+
+RUN gem install bundler && bundle install
+
+COPY . .
+
+CMD ["bash", "-c", "rm -f tmp/pids/server.pid && bundle exec rails server -b 0.0.0.0"]
